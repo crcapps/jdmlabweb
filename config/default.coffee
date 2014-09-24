@@ -12,6 +12,7 @@ module.exports =
 		techContactEmail: "dev@example.com"
 		adminModule: "admin"
 	Experiment:
+		experimentName: "A JDM Experiment"
 		modules: ["consent","inventory", "jdm", "debriefing"]
 		primaryInvestigator: "Primary Investigator"
 		primaryInvestigatorEmail: "pi@example.com"
