@@ -9,4 +9,20 @@ router.get('/', function(req, res) {
   res.render('index', { title: homePageTitle });
 });
 
+router.get(config.get(Application.Routes.adminRoute), function(req, res) {
+
+});
+
+router.post(config.get(Application.Routes.adminRoute), function(req, res) {
+
+});
+
+router.get('/:id', function(req, res) {
+
+});
+
+router.post('/:id', function(req, res) {
+
+});
+
 module.exports = router;

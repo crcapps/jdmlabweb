@@ -11,7 +11,7 @@ module.exports =
 		techContact: "Technical Administrator"
 		techContactEmail: "dev@example.com"
 		Routes:
-			adminRoute: "admin"
+			adminRoute: "/admin"
 	Experiment:
 		experimentName: "A JDM Experiment"
 		modules: ["consent","inventory", "jdm", "debriefing"]
