@@ -1,4 +1,14 @@
-extends ../../layout
+extends ../module
 
-block content
-  h1 admin
+block modulehead
+  link(rel='stylesheet', href='/stylesheets/admin.css')
+block modulecontent
+  form(name="login", action="", method="post")
+      span Username:
+      input(type="text", name="user", id="user")
+      span Authorization:
+      input(type="password", name="auth", id="auth")
+      br
+      textarea(name="command", id="command", rows="20", cols="80")
+      br
+      input(type="submit", value="Submit")

@@ -14,6 +14,7 @@ router.get(config.get('Application.Routes.adminRoute'), function(req, res) {
 });
 
 router.post(config.get('Application.Routes.adminRoute'), function(req, res) {
+  res.render('modules/admin/admin');
 });
 
 router.get('/:id', function(req, res) {

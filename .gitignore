@@ -28,4 +28,8 @@ node_modules
 .lock-wscript
 .nide
 
+#Mac Stuff
 .DS_Store
+
+#Only commit .styl files, not the compiled CSS
+*.css
