@@ -19,7 +19,7 @@ var app = express();
 var env = process.env.NODE_ENV || 'development';
 if ('development' == env) {
    log.notice('Initializing in development mode.');
-	app.use(morgan('dev', {stream:log.info})); 
+	app.use(morgan('dev', {stream:log.info}));
 } else {
 	log.info('Initializing...');
 	app.use(morgan('combined', {stream:log.info}));
@@ -37,7 +37,7 @@ app.set('view engine', viewEngine);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(require('stylus').middleware(path.join(__dirname, 'public')));
+app.use(require('stylus').middleware(path.join(__dirname, config.get('Application.publicPath'))));
 
 var publicPath = path.join(__dirname + config.get('Application.publicPath'));
 app.use(express.static(publicPath));

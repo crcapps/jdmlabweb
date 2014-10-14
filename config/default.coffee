@@ -4,13 +4,14 @@ module.exports =
 		defaultLang: "en-us"
 		defaultCharset: "UTF-8"
 		timeFormat: "LLLL"
-		modulesPath: "/modules"
 		publicPath: "/public"
 		viewPath: "/views"
+		routePath: "/routes"
 		viewEngine: "jade"
 		techContact: "Technical Administrator"
 		techContactEmail: "dev@example.com"
-		adminModule: "admin"
+		Routes:
+			adminRoute: "admin"
 	Experiment:
 		experimentName: "A JDM Experiment"
 		modules: ["consent","inventory", "jdm", "debriefing"]
