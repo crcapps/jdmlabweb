@@ -19,10 +19,10 @@ var app = express();
 var env = process.env.NODE_ENV || 'development';
 if ('development' == env) {
    log.notice('Initializing in development mode.');
-	app.use(morgan('dev', {stream:log.info}));
+   app.use(morgan('dev'));
 } else {
 	log.info('Initializing...');
-	app.use(morgan('combined', {stream:log.info}));
+  app.use(morgan('combined'));
 }
 
 // view engine setup
@@ -45,7 +45,7 @@ app.use(express.static(publicPath));
 
 
 app.use('/', routes);
-
+/*
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
     var err = new Error('Not Found');
@@ -76,6 +76,6 @@ app.use(function(err, req, res, next) {
         error: {}
     });
 });
-
+*/
 
 module.exports = app;
