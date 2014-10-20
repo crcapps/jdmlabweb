@@ -1,6 +1,9 @@
-p Please, read carefully all following instructions!
-p In this section you will be presented with several questions about nutrition and dietary intake. Please, respond to all questions honestly and to the best of your knowledge.
-p Please, do not leave any question blank.
-p When you finish reading the above instructions you are ready to start, please click the button.
-form(name="inventoryinstructions", action="", method="post")
-  input(type="submit", value="Continue")
+extends module
+
+block modulecontent
+  p Please, read carefully all following instructions!
+  p In this section you will be presented with several questions about nutrition and dietary intake. Please, respond to all questions honestly and to the best of your knowledge.
+  p Please, do not leave any question blank.
+  p When you finish reading the above instructions you are ready to start, please click the button.
+  form(name="inventoryinstructions", action="", method="post")
+    input(type="submit", value="Continue")

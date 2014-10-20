@@ -9,6 +9,7 @@ module.exports =
 		viewPath: "/views"
 		routePath: "/routes"
 		subjectPath: "/subjects"
+		dataPath: "/data"
 		viewEngine: "jade"
 		techContact: "Technical Administrator"
 		techContactEmail: "dev@example.com"

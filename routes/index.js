@@ -49,15 +49,22 @@ router.post(config.get('Application.Routes.adminRoute'),function(req, res) {
 /* Anything else is parsed as a Subject ID */
 router.get('/:id',function(req, res) {
   var phase;
+  var step;
   if (fs.existsSync(getSubjectFile(req.params.id))){
     try {
       var experiment = fs.readFileSync(getSubjectFile(req.params.id), {encoding:'UTF8'});
-      phase = experiment.split(',').shift();
+      var phaseStep = experiment.split(',').shift().split(' ');
+      phase = phaseStep[0];
+      step = phaseStep[1];
+      if (phase == null || phase == '') {
+        res.render('modules/debriefing');
+        return;
+      }
     } catch (err) {
       throw err;
     }
-    console.log(req.body);
-    res.render('modules/' + phase);
+    var returnHtml = doGet(req.params.id, phase, step);
+    res.render('modules/' + phase, {data: returnHtml});
   } else {
   res.status(404);
   res.render('modules/invalid');
@@ -67,22 +74,26 @@ router.get('/:id',function(req, res) {
 router.post('/:id', function(req, res) {
   outer.get('/:id',function(req, res) {
     var phase;
+    var step;
     var subjectFile = getSubjectFile(req.params.id);
     if (fs.existsSync(subjectFile)){
       try {
         var experiment = fs.readFileSync(getSubjectFile(req.params.id), {encoding:'UTF8'});
         experimentArray = experiment.split(',');
-        phase = experimentArray.shift();
+        var phaseStep = experimentArray.shift().split(' ');
+        phase = phaseStep[0];
+        step = phaseStep[1];
         if (phase == null || phase == '') {
           res.render('modules/debriefing');
-          break;
+          return;
         }
         experiment = experimentArray.join(',');
         fs.writeFileSync(subjectFile,experiment);
       } catch (err) {
         throw err;
       }
-      res.render('modules/' + phase);
+      var returnHtml = doPost(req.params.id, phase, step);
+      res.render('modules/' + phase, {data: returnHtml});
     } else {
     res.status(404);
     res.render('modules/invalid');
@@ -91,6 +102,53 @@ router.post('/:id', function(req, res) {
 });
 
 module.exports = router;
+
+function doGet(subject, phase, step) {
+  switch(phase) {
+    case "grid":
+      return getGrid(step);
+    case "slider":
+      return getSlider(step);
+    case "inventory":
+      return getInventory(step);
+    default:
+      break;
+  }
+}
+
+function doPost(subject, phase, step) {
+  switch(phase) {
+
+  }
+}
+
+function getGrid(step) {
+  var grid = 'grid' + step + '.csv';
+  return parseGrid(grid);
+}
+
+function postGrid(subject, step) {
+  switch(step) {
+
+  }
+}
+
+function getSlider(step) {
+  var slider = 'slider' + step + '.csv';
+  return parseSlider(slider);
+}
+
+function postSlider(subject, step) {
+
+}
+
+function getInventory(step) {
+  switch(step)
+}
+
+function postInventory(subject, step) {
+
+}
 
 function doConsent(subject) {
   var file = getSubjectFile(subject);
@@ -116,10 +174,10 @@ function setupExperiment() {
   var deck;
   var consent = 'consent,';
   var debriefing = ',debriefing';
-  var inventoryArray = ['survey1', 'survey2', 'survey3'];
+  var inventoryArray = ['survey 1', 'survey 2', 'survey 3'];
   deck = Shuffle.shuffle({deck: inventoryArray});
   var inventory = 'inventoryInstructions,' + deck.drawRandom(deck.length).join(',');
-  var gridArray = ['grid1,slider1','grid2,slider2','grid3,slider3'];
+  var gridArray = ['grid 1,slider 1','grid 2,slider 2','grid 3,slider 3'];
   deck = Shuffle.shuffle({deck: gridArray});
   var grid = 'gridInstructions,' + deck.drawRandom(deck.length).join(',');
   var mixArray = [inventory,grid];
@@ -252,18 +310,20 @@ function gridEliminationMode(mode) {
       return "other";
   }
 }
-/*
-function parseGrid(gridFile) {
+
+function parseGrid(grid) {
+  var gridPath = path.join(__dirname, config.get("Application.dataPath"));
+  var gridFile = path.join(gridPath, grid);
   var data;
   try {
-  data = fs.readFileSync('./grid/' + gridFile, 'utf8');
+  data = fs.readFileSync(gridFile, 'utf8');
   }
   catch (err) {
-    if (err.code === 'ENOENT') {
+    /*if (err.code === 'ENOENT') {
       return getErrorHtml(errorNoGridFile);		}
    else {
       throw err;
-    }
+    }*/ throw err;
   }
   var gridHtml = "<div class=\"gridwrapper\">\n";
   var lines = data.split('\n');
@@ -309,16 +369,18 @@ function parseGrid(gridFile) {
   return gridHtml;
 }
 
-function parseSliders(slidersFile) {
+function parseSlider(slider) {
+  var sliderPath = path.join(__dirname, config.get("Application.dataPath"));
+  var sliderFile = path.join(sliderPath, slider) + '.csv';
   var data;
   try {
-    data = fs.readFileSync(slidersFile, 'utf8');
+    data = fs.readFileSync(sliderFile, 'utf8');
   }
   catch (err) {
-    if (err.code === 'ENOENT') {
+    /*if (err.code === 'ENOENT') {
       return getErrorHtml(errorNoSlidersFile);		} else {
       throw err;
-    }
+    }*/throw err;
   }
   var slidersHtml = "";
   var lines = data.split('\n');
@@ -355,11 +417,12 @@ function parseSliders(slidersFile) {
   slidersHtml += "<input type=\"hidden\" id=\"starttime\" name=\"starttime\" />\n";
   slidersHtml += "<input type=\"hidden\" id=\"time\" name=\"time\" />\n";
   slidersHtml += "<input type=\"hidden\" id=\"stoptime\" name=\"stoptime\" />\n";
-  slidersHtml += "<button onclick=\"submitSliders();\">Submit</button>\n";
   return slidersHtml;
 }
 
-function parseSurvey(survey) {
+function parseInventory(inventory) {
+  var inventoryPath = path.join(__dirname, config.get("Application.dataPath"));
+  var inventoryFile = path.join(gridPath, grid);
   var data;
   try {
   data = fs.readFileSync('./survey/survey' + survey + '.html', 'utf8');
@@ -375,7 +438,7 @@ function parseSurvey(survey) {
 }
 
 
-
+/*
 function writeGrid(inData, grid) {
   var outData = "";
   var gridNumber = getNumberText(grid);

@@ -1,10 +1,12 @@
 extends module
 
 block modulehead
-  link(rel='stylesheet', href='/stylesheets/admin.css')
-
+  link(rel='stylesheet', href='/stylesheets/sliders.css')
+  script(src="/scripts/Sliders.js")
 block modulecontent
   p Please, answer the following questions by using the sliders. The sliders are divided on a 10-point scale.
   br
-  
-  !{sliders}
+  form(name="slider", action="", method="post")
+    !{data}
+    br
+    input(type="button", value="Submit", onClick="submitSliders()")
