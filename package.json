@@ -35,6 +35,8 @@
     "stylus": "latest",
     "nib": "latest",
     "bootstrap-stylus": "latest",
-    "shuffle": "latest"
+    "shuffle": "latest",
+    "rimraf": "latest",
+    "mkdirp": "latest"
   }
 }

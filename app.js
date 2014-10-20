@@ -9,7 +9,6 @@ var moment = require('moment');
 var Log = require('log'), log = new Log();
 var stylus = require('stylus');
 var nib = require('nib');
-var shuffle = require('shuffle');
 
 var routes = require('./routes/index');
 
@@ -42,10 +41,11 @@ app.use(require('stylus').middleware(path.join(__dirname, config.get('Applicatio
 var publicPath = path.join(__dirname + config.get('Application.publicPath'));
 app.use(express.static(publicPath));
 
-
+var faviconPath = path.join(publicPath, config.get('Application.favicon'));
+app.use(favicon(path.join(publicPath,config.get('Application.favicon'))));
 
 app.use('/', routes);
-/*
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
     var err = new Error('Not Found');
@@ -76,6 +76,6 @@ app.use(function(err, req, res, next) {
         error: {}
     });
 });
-*/
+
 
 module.exports = app;
