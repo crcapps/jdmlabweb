@@ -8,9 +8,10 @@ var mkdirp = require('mkdirp');
 var config = require('config');
 var rimraf = require('rimraf');
 var Shuffle = require('shuffle');
-var subjectsPath = path.join(__dirname, config.get('Application.subjectPath'));
+var moment = require('moment');
 
 var subjectsPath = path.join(__dirname, config.get('Application.subjectPath'));
+
 
 var homePageTitle = config.get('Experiment.experimentName');
 var adminTitle = homePageTitle + ' Administrative Console.'
@@ -47,24 +48,61 @@ router.post(config.get('Application.Routes.adminRoute'),function(req, res) {
 
 /* Anything else is parsed as a Subject ID */
 router.get('/:id',function(req, res) {
-  var section = '';
-  var step = '';
+  var phase;
   if (fs.existsSync(getSubjectFile(req.params.id))){
-  res.render('modules/' + section + '/' + section, {instrument:step});
-} else {
+    try {
+      var experiment = fs.readFileSync(getSubjectFile(req.params.id), {encoding:'UTF8'});
+      phase = experiment.split(',').shift();
+    } catch (err) {
+      throw err;
+    }
+    console.log(req.body);
+    res.render('modules/' + phase);
+  } else {
   res.status(404);
-  res.render('error', {
-      message: config.get('Errors.errorInvalidSubject'),
-      error: {}
-  });
+  res.render('modules/invalid');
 }
 });
 
-router.post('/:id', function(req, res) {});
+router.post('/:id', function(req, res) {
+  outer.get('/:id',function(req, res) {
+    var phase;
+    var subjectFile = getSubjectFile(req.params.id);
+    if (fs.existsSync(subjectFile)){
+      try {
+        var experiment = fs.readFileSync(getSubjectFile(req.params.id), {encoding:'UTF8'});
+        experimentArray = experiment.split(',');
+        phase = experimentArray.shift();
+        if (phase == null || phase == '') {
+          res.render('modules/debriefing');
+          break;
+        }
+        experiment = experimentArray.join(',');
+        fs.writeFileSync(subjectFile,experiment);
+      } catch (err) {
+        throw err;
+      }
+      res.render('modules/' + phase);
+    } else {
+    res.status(404);
+    res.render('modules/invalid');
+  }
+  res.redirect('/' + req.params.id);
+});
 
 module.exports = router;
 
-
+function doConsent(subject) {
+  var file = getSubjectFile(subject);
+  if (fs.existsSync(file)) {
+    var subjectPath = getSubjectPath(subject);
+    var consentFile = path.join(subjectPath, 'consent.txt');
+    var fd = fs.openSync(consentFile, 'w');
+    fs.closeSync(fd);
+    var now = moment().format(config.get('Application.timeFormat'));
+    fs.appendFile(consentFile, now);
+  }
+}
 
 function getSubjectPath(subject) {
   return path.join(subjectsPath, subject);
@@ -88,14 +126,6 @@ function setupExperiment() {
   deck = Shuffle.shuffle({deck: mixArray});
   mix = deck.drawRandom(deck.length).join(',');
   return consent + mix + debriefing;
-}
-
-function writeData (filename, data) {
-  try {
-    fs.appendFileSync(filename, data, 'utf8');
-  } catch (err) {
-    throw err;
-  }
 }
 
 function parseCommand (command) {
@@ -210,7 +240,6 @@ function parseCommand (command) {
   return returnHtml;
 }
 
-/*
 function gridEliminationMode(mode) {
   switch (mode.toString().replace('\r','')) {
     case "RANKMODE SingleChoice":
@@ -223,7 +252,7 @@ function gridEliminationMode(mode) {
       return "other";
   }
 }
-
+/*
 function parseGrid(gridFile) {
   var data;
   try {
@@ -393,28 +422,10 @@ function writeSliders(inData, slider) {
   return outData;
 }
 
-function getNumberText(number) {
-  switch (number) {
-      case 1:
-        return "ONE";
-      case 2:
-        return "TWO";
-      case 3:
-        return "THREE";
-      case 4:
-        return "FOUR";
-    }
-}
 
 function writeSurvey(inData, survey) {
   var outData = "";
-  var surveyNumber = getNumberText(survey);
-  outData += "\nBEGIN SURVEY "
-  outData += surveyNumber;
-  outData += "\n";
   outData += writeAllKeys(inData);
-  outData += "END SURVEY ";
-  outData += surveyNumber;
   return outData;
 }
 */

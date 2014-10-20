@@ -1,0 +1,19 @@
+extends module
+
+block modulecontent
+  p Please, read carefully!
+  p In this section you will see 3 choice grids consisting of 5 options (potato chips), each described by some attributes. Note that “Average taste rating” is the average consumer report on the taste of the potato chips on a scale from 1 (detestable) to 10 (delicious)
+  p In each choice grid, you will be asked to rank the potato chips options from best (the option you would be most interested in consuming) to worse (the option you would be least interested in consuming).
+  p For example: select the best option, then select the second best option, then the third best option and so on. Every time you select an option, that option will disappear from the choice grid.
+  p You can evaluate the information about all the options at any time during the task. (You can do so before you make a selection and in between selections).
+  p To evaluate information, rest the mouse cursor on a blank grid cell. The value of that attribute will reveal itself. To reveal additional information, move the mouse cursor to that cell and so on. Use this information to decide which potato chip you would choose.
+  p Select a potato chip by clicking on it in the leftmost column.
+  p When you finish ranking the 5 potato chips of the first choice grid, you will be asked about your confidence on your choices as well as how difficult your choices were.
+  p Then you will be presented with the second choice grid. Please, rank the potato chips options from best (the option you would be most interested in consuming) to worse (the option you would be least interested in consuming) in this grid also. Again, you can evaluate the information about all the options at any time during the raking process
+  img(src='/images/grid.png' alt='choice grid screenshot')
+  p When you finish ranking the 5 potato chips of the second choice grid, you will be asked about your confidence on your choices as well as how difficult your choices were.
+  p Then you will be presented with the third (and last) choice grid. The task is the same as previous.
+  p When you finish ranking the 5 potato chips of the last choice grid, you will be asked about your confidence on your choices as well as how difficult your choices were.
+  p When you finish reading the above instruction (Please, re-read them if necessary), and when you are ready to start, please click the button below.
+  form(name="jdminstructions", action="", method="post")
+    input(type="submit", value="Continue")
