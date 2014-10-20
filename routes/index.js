@@ -7,7 +7,7 @@ var path = require('path');
 var mkdirp = require('mkdirp');
 var config = require('config');
 var rimraf = require('rimraf');
-var shuffle = require('shuffle');
+var Shuffle = require('shuffle');
 var subjectsPath = path.join(__dirname, config.get('Application.subjectPath'));
 
 var subjectsPath = path.join(__dirname, config.get('Application.subjectPath'));
@@ -75,14 +75,18 @@ function getSubjectFile(subject) {
 }
 
 function setupExperiment() {
+  var deck;
   var consent = 'consent,';
   var debriefing = ',debriefing';
   var inventoryArray = ['survey1', 'survey2', 'survey3'];
-  var inventory = 'inventoryInstructions,' + shuffle.shuffle(inventoryArray).join(',');
+  deck = Shuffle.shuffle({deck: inventoryArray});
+  var inventory = 'inventoryInstructions,' + deck.drawRandom(deck.length).join(',');
   var gridArray = ['grid1,slider1','grid2,slider2','grid3,slider3'];
-  var grid = 'gridInstructions,' + shuffle.shuffle(gridArray).join(',');
+  deck = Shuffle.shuffle({deck: gridArray});
+  var grid = 'gridInstructions,' + deck.drawRandom(deck.length).join(',');
   var mixArray = [inventory,grid];
-  var mix = shuffle.shuffle(mixArray).join(',');
+  deck = Shuffle.shuffle({deck: mixArray});
+  mix = deck.drawRandom(deck.length).join(',');
   return consent + mix + debriefing;
 }
 
@@ -115,7 +119,7 @@ function parseCommand (command) {
             mkdirp.sync(getSubjectPath(subject));
             var fd = fs.openSync(file, 'w');
             fs.closeSync(fd);
-            writeData(file,setupExperiment());
+            fs.appendFile(file,setupExperiment());
             created++;
           }
           catch (err) {
