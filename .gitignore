@@ -31,5 +31,7 @@ node_modules
 #Mac Stuff
 .DS_Store
 
+Thumbs.db
+
 #Only commit .styl files, not the compiled CSS
 *.css

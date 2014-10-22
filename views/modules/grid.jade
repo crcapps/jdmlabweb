@@ -2,7 +2,9 @@ extends module
 
 block modulehead
   link(rel='stylesheet', href='/stylesheets/grid.css')
+  script(src="/scripts/Timers.js")
   script(src="/scripts/ChoiceGrid.js")
+
 block modulecontent
-  form(name="grid", action="", method="post")
-    !{data}
+  form(name="grid", id="gridForm", action="", method="post")
+    |!{data}

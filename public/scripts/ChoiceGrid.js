@@ -104,7 +104,7 @@ function makeChoice(id,label,rank) {
 	moveSummary += "Average viewing time: " + averageTime + " milliseconds\n";
 
 	document.getElementById('movelog').value = moveSummary + moveLog;
-	document.getElementById("jdmForm").submit();
+	document.getElementById("gridForm").submit();
 	}
 
 }

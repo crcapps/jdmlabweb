@@ -1,7 +1,10 @@
 extends module
 
+block modulehead
+  link(rel="stylesheet" href="/stylesheets/inventory.css")
+
 block modulecontent
   form(name="inventory", action="", method="post")
-    !{data}
+    |!{data}
     br
     input(type="submit", value="Submit")

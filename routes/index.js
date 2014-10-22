@@ -3,18 +3,17 @@ var express = require('express');
 var router = express.Router();
 var fs = require('fs');
 var path = require('path');
-var path = require('path');
 var mkdirp = require('mkdirp');
-var config = require('config');
 var rimraf = require('rimraf');
 var Shuffle = require('shuffle');
 var moment = require('moment');
+
 
 var subjectsPath = path.join(__dirname, config.get('Application.subjectPath'));
 
 
 var homePageTitle = config.get('Experiment.experimentName');
-var adminTitle = homePageTitle + ' Administrative Console.'
+var adminTitle = homePageTitle + ' Administrative Console.';
 
 /* Homepage */
 router.get('/', function(req, res) {
@@ -23,7 +22,7 @@ router.get('/', function(req, res) {
 
 /* Admin Console (set in configuration file) */
 router.get(config.get('Application.Routes.adminRoute'),function(req, res) {
-  res.render('modules/admin/admin', {title: adminTitle});
+  res.render('modules/admin', {title: adminTitle});
 });
 
 router.post(config.get('Application.Routes.adminRoute'),function(req, res) {
@@ -43,11 +42,11 @@ router.post(config.get('Application.Routes.adminRoute'),function(req, res) {
   } else {
     returnHtml += config.get('Errors.errorInvalidCredentials');
   }
-  res.render('modules/admin/admin', {output:returnHtml});
+  res.render('modules/admin', {output:returnHtml});
 });
 
 /* Anything else is parsed as a Subject ID */
-router.get('/:id',function(req, res) {
+router.get('/:id',function(req, res, next) {
   var phase;
   var step;
   if (fs.existsSync(getSubjectFile(req.params.id))){
@@ -56,23 +55,22 @@ router.get('/:id',function(req, res) {
       var phaseStep = experiment.split(',').shift().split(' ');
       phase = phaseStep[0];
       step = phaseStep[1];
-      if (phase == null || phase == '') {
+      if (phase === null || phase === '') {
         res.render('modules/debriefing');
         return;
       }
     } catch (err) {
-      throw err;
+      return next(err);
     }
     var returnHtml = doGet(req.params.id, phase, step);
     res.render('modules/' + phase, {data: returnHtml});
   } else {
   res.status(404);
   res.render('modules/invalid');
-}
-});
+  }
+  });
 
 router.post('/:id', function(req, res) {
-  outer.get('/:id',function(req, res) {
     var phase;
     var step;
     var subjectFile = getSubjectFile(req.params.id);
@@ -83,7 +81,7 @@ router.post('/:id', function(req, res) {
         var phaseStep = experimentArray.shift().split(' ');
         phase = phaseStep[0];
         step = phaseStep[1];
-        if (phase == null || phase == '') {
+        if (phase === null || phase === '') {
           res.render('modules/debriefing');
           return;
         }
@@ -93,12 +91,10 @@ router.post('/:id', function(req, res) {
         throw err;
       }
       var returnHtml = doPost(req.params.id, phase, step);
-      res.render('modules/' + phase, {data: returnHtml});
+      res.redirect('/' + req.params.id);
     } else {
-    res.status(404);
     res.render('modules/invalid');
   }
-  res.redirect('/' + req.params.id);
 });
 
 module.exports = router;
@@ -112,14 +108,24 @@ function doGet(subject, phase, step) {
     case "inventory":
       return getInventory(step);
     default:
-      break;
+      return '';
   }
 }
 
 function doPost(subject, phase, step) {
   switch(phase) {
-
+    case 'consent':
+      return postConsent(subject);
+    case 'grid':
+      return postGrid(subject, step);
+    case 'slider':
+      return postSlider(subject, step);
+    case 'inventory':
+      return postInventory(subject, step);
+    default:
+      return ';'
   }
+
 }
 
 function getGrid(step) {
@@ -129,7 +135,8 @@ function getGrid(step) {
 
 function postGrid(subject, step) {
   switch(step) {
-
+    default:
+      break;
   }
 }
 
@@ -143,14 +150,15 @@ function postSlider(subject, step) {
 }
 
 function getInventory(step) {
-  switch(step)
+  var inventory = 'inventory' + step + '.html';
+  return parseInventory(inventory);
 }
 
 function postInventory(subject, step) {
 
 }
 
-function doConsent(subject) {
+function postConsent(subject) {
   var file = getSubjectFile(subject);
   if (fs.existsSync(file)) {
     var subjectPath = getSubjectPath(subject);
@@ -174,12 +182,12 @@ function setupExperiment() {
   var deck;
   var consent = 'consent,';
   var debriefing = ',debriefing';
-  var inventoryArray = ['survey 1', 'survey 2', 'survey 3'];
+  var inventoryArray = ['inventory 1', 'inventory 2', 'inventory 3', 'inventory 4'];
   deck = Shuffle.shuffle({deck: inventoryArray});
-  var inventory = 'inventoryInstructions,' + deck.drawRandom(deck.length).join(',');
+  var inventory = 'inventoryinstructions,' + deck.drawRandom(deck.length).join(',');
   var gridArray = ['grid 1,slider 1','grid 2,slider 2','grid 3,slider 3'];
   deck = Shuffle.shuffle({deck: gridArray});
-  var grid = 'gridInstructions,' + deck.drawRandom(deck.length).join(',');
+  var grid = 'jdminstructions,' + deck.drawRandom(deck.length).join(',');
   var mixArray = [inventory,grid];
   deck = Shuffle.shuffle({deck: mixArray});
   mix = deck.drawRandom(deck.length).join(',');
@@ -188,16 +196,16 @@ function setupExperiment() {
 
 function parseCommand (command) {
   var returnHtml = "";
-
+  var subjects, failed, created, removed, ignored, duplicates, subject, file, i;
   switch (command[0].toUpperCase()) {
     case "CREATE SUBJECTS":
-      var subjects = command.slice(1).filter(function(v){return v!==''});
-      var created = 0;
-      var failed = 0;
-      var duplicates = 0;
-      for (var i = 0; i < subjects.length; i++) {
-        var subject = subjects[i].replace(/\W/g, '');
-        var file = getSubjectFile(subject);
+      subjects = command.slice(1).filter(function(v){return v!=='';});
+      created = 0;
+      failed = 0;
+      duplicates = 0;
+      for (i = 0; i < subjects.length; i++) {
+        subject = subjects[i].replace(/\W/g, '');
+        file = getSubjectFile(subject);
         if (fs.existsSync(file)) {
           duplicates++;
           failed++;
@@ -222,13 +230,13 @@ function parseCommand (command) {
       returnHtml += "<span>" + failed + " records failed to create: " + duplicates + " were duplicate records ignored.</span><br />\n";
       break;
     case "DELETE SUBJECTS":
-      var subjects = command.slice(1).filter(function(v){return v!==''});
-      var removed = 0;
-      var failed = 0;
-      var ignored = 0;
-      for (var i = 0; i < subjects.length; i++) {
-        var subject = subjects[i].replace(/\W/g, '');
-        var file = getSubjectFile(subject);
+      subjects = command.slice(1).filter(function(v){return v!=='';});
+      removed = 0;
+      failed = 0;
+      ignored = 0;
+      for (i = 0; i < subjects.length; i++) {
+        subject = subjects[i].replace(/\W/g, '');
+        file = getSubjectFile(subject);
         if (fs.existsSync(file)) {
           try {
             rimraf.sync(getSubjectPath(subject));
@@ -249,51 +257,16 @@ function parseCommand (command) {
       returnHtml += "<span>Failure removing " + failed + " records: " + ignored + " were nonexistent records ignored.</span><br />\n";
       break;
     case "LIST SUBJECTS":
-      var subjects = fs.readdirSync(subjectsPath).filter(function (file) {
+      subjects = fs.readdirSync(subjectsPath).filter(function (file) {
         return fs.statSync(file).isDirectory();
       });
-      for (var i = 0; i < subjects.length; i++) {
+      for (i = 0; i < subjects.length; i++) {
         returnHtml += "<span>" + subjects[i] + "</span><br />\n";
       }
       break;
-    /*case "EXPORT":
-      var subjects = fs.readdirSync("./subjects").filter(function(v){ return /\.csv/.test(v); });
-      var ex ='';
-      for (var i = 0; i < subjects.length; i++) {
-        try {
-          var file = fs.readFileSync("./subjects/" + subjects[i],"utf8");
-          ex += "BEGIN SUBJECT " + subjects[i].replace(".csv", "") + "\n\n";
-          ex += file;
-          ex += "\n\nEND SUBJECT " + subjects[i].replace(".csv", "") + "\n\n";
-        }
-        catch (err) {
-          ex += "\n\nEXPORT OF SUBJECT " + subjects[i].replace(".csv", "") + " FAILED!!!\n\n";
-        }
-      }
-      res.set({"Content-Disposition":"attachment; filename=\"export.csv\""});
-      res.contentType("text/plain");
-         res.send(ex);
-      return;
-    case "SHOW SUBJECTS":
-      var subjects = command.slice(1).filter(function(v){return v!==''});
-      var ex ='';
-            for (var i = 0; i < subjects.length; i++) {
-              try {
-                var file = fs.readFileSync("./subjects/" + subjects[i] + ".csv","utf8");
-                ex += "BEGIN SUBJECT " + subjects[i].replace(".csv", "") + "\n\n";
-                ex += file;
-                ex += "\n\nEND SUBJECT " + subjects[i].replace(".csv", "") + "\n\n";
-              }
-              catch (err) {
-                ex += "\n\nEXPORT OF SUBJECT " + subjects[i].replace(".csv", "") + " FAILED!!!\n\n";
-              }
-            }
-            res.set({"Content-Disposition":"attachment; filename=\"export.csv\""});
-            res.contentType("text/plain");
-               res.send(ex);
-            return;*/
     default:
       returnHtml += config.get('Errors.errorMalformedCommand');
+      break;
   }
   return returnHtml;
 }
@@ -316,14 +289,9 @@ function parseGrid(grid) {
   var gridFile = path.join(gridPath, grid);
   var data;
   try {
-  data = fs.readFileSync(gridFile, 'utf8');
-  }
-  catch (err) {
-    /*if (err.code === 'ENOENT') {
-      return getErrorHtml(errorNoGridFile);		}
-   else {
-      throw err;
-    }*/ throw err;
+    data = fs.readFileSync(gridFile, 'utf8');
+  } catch (err) {
+    throw err;
   }
   var gridHtml = "<div class=\"gridwrapper\">\n";
   var lines = data.split('\n');
@@ -339,8 +307,8 @@ function parseGrid(grid) {
     {
       var col = theLine[c];
       var id = column + "," +row;
-      var isRowHeader = (column == 0) ? true : false;
-      var isColumnHeader = (row == 0) ? true : false;
+      var isRowHeader = (column === 0) ? true : false;
+      var isColumnHeader = (row === 0) ? true : false;
       var isHeader = (isRowHeader || isColumnHeader) ? true : false;
       var cssclass = (isRowHeader) ? "gridrowheader" : (isColumnHeader) ? "gridcolumnheader" : "gridsquare";
       var spanclass =  isHeader ? "gridheader" : "gridcontent";
@@ -371,16 +339,13 @@ function parseGrid(grid) {
 
 function parseSlider(slider) {
   var sliderPath = path.join(__dirname, config.get("Application.dataPath"));
-  var sliderFile = path.join(sliderPath, slider) + '.csv';
+  var sliderFile = path.join(sliderPath, slider);
   var data;
   try {
     data = fs.readFileSync(sliderFile, 'utf8');
   }
   catch (err) {
-    /*if (err.code === 'ENOENT') {
-      return getErrorHtml(errorNoSlidersFile);		} else {
-      throw err;
-    }*/throw err;
+    throw err;
   }
   var slidersHtml = "";
   var lines = data.split('\n');
@@ -403,16 +368,16 @@ function parseSlider(slider) {
     slidersHtml += "<div class=\"sliderWrapper\">\n";
     slidersHtml += "<div class=\"topLabelDiv\"";
     slidersHtml += "<span class=\"topLabel\">" +  sliderQuestion + "</span>";
-    slidersHtml += "</div>\n"
+    slidersHtml += "</div>\n";
     slidersHtml += "<div class=\"sliderDiv\">\n";
     slidersHtml += "<span class=\"leftPole\">" +  sliderLeftPole + "</span>";
     slidersHtml += "<input class=\"slider\" type = \"range\" name = \"" + sliderName + "\" min=\"" + sliderMin +"\" + max=\"" + sliderMax + "\" step = \"" + sliderStep + "\" value = \"" + sliderValue +  "\" />\n";
     slidersHtml += "<span class=\"rightPole\">" +  sliderRightPole + "</span>\n";
-    slidersHtml += "</div>\n"
+    slidersHtml += "</div>\n";
     slidersHtml += "<div class=\"labelsDiv\">\n";
     slidersHtml += "<span class=\"midPoint\">" +  sliderMidPoint + "</span>";
-    slidersHtml += "</div>\n"
-    slidersHtml += "</div>\n"
+    slidersHtml += "</div>\n";
+    slidersHtml += "</div>\n";
   }
   slidersHtml += "<input type=\"hidden\" id=\"starttime\" name=\"starttime\" />\n";
   slidersHtml += "<input type=\"hidden\" id=\"time\" name=\"time\" />\n";
@@ -422,73 +387,12 @@ function parseSlider(slider) {
 
 function parseInventory(inventory) {
   var inventoryPath = path.join(__dirname, config.get("Application.dataPath"));
-  var inventoryFile = path.join(gridPath, grid);
+  var inventoryFile = path.join(inventoryPath, inventory);
   var data;
   try {
-  data = fs.readFileSync('./survey/survey' + survey + '.html', 'utf8');
+    data = fs.readFileSync(inventoryFile, 'utf8');
+  } catch (err) {
+    throw err;
   }
-  catch (err) {
-    if (err.code === 'ENOENT') {
-      return getErrorHtml(errorNoSurveyFile);		} else {
-        throw err;
-    }
-  }
-  data += "<input type=\"submit\">\n";
   return data;
 }
-
-
-/*
-function writeGrid(inData, grid) {
-  var outData = "";
-  var gridNumber = getNumberText(grid);
-  outData += "\nBEGIN CHOICE GRID ";
-  outData += gridNumber;
-  outData += "\n";
-  outData += inData["movelog"];
-  outData += "\nEND CHOICE GRID ";
-  outData += gridNumber;
-  return outData;
-}
-
-function writeAllKeys(inData) {
-  var outData = "";
-  for (var k in inData) {
-    outData += k;
-    outData += ",";
-  }
-  outData += "\n";
-  for (var k in inData) {
-    outData += inData[k];
-    outData += ",";
-  }
-  return outData;
-}
-
-function writeSliders(inData, slider) {
-  var startTime = inData['starttime'];
-  var stopTime = inData['stoptime'];
-  var outData = "";
-  var sliderNumber = getNumberText(slider);
-  outData += "\nBEGIN SLIDERS";
-  outData += sliderNumber
-  outData += "\n";
-  outData += "START TIME: " + startTime + "\n";
-  outData += "Rating finished in " + inData['time'] + " milliseconds.\n"
-  delete inData['time'];
-  delete inData['starttime'];
-  delete inData['stoptime'];
-  outData += writeAllKeys(inData);
-  outData += "STOP TIME: " + stopTime + "\n";
-  outData += "END SLIDERS ";
-  outData += sliderNumber;
-  return outData;
-}
-
-
-function writeSurvey(inData, survey) {
-  var outData = "";
-  outData += writeAllKeys(inData);
-  return outData;
-}
-*/

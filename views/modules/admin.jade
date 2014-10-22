@@ -2,10 +2,11 @@ extends module
 
 block modulehead
   link(rel='stylesheet', href='/stylesheets/admin.css')
+  
 block modulecontent
   form(name="admin", action="", method="post")
       textarea(name="commands", id="commands", rows="20", cols="80")
       br
       input(type="submit", value="Submit")
       br
-      !{output}
+      |!{output}
