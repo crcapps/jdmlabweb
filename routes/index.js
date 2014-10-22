@@ -73,6 +73,7 @@ router.get('/:id',function(req, res, next) {
 router.post('/:id', function(req, res) {
     var phase;
     var step;
+    var body = req.body;
     var subjectFile = getSubjectFile(req.params.id);
     if (fs.existsSync(subjectFile)){
       try {
@@ -90,7 +91,7 @@ router.post('/:id', function(req, res) {
       } catch (err) {
         throw err;
       }
-      var returnHtml = doPost(req.params.id, phase, step);
+      doPost(req.params.id, phase, step, req.body);
       res.redirect('/' + req.params.id);
     } else {
     res.render('modules/invalid');
@@ -112,16 +113,16 @@ function doGet(subject, phase, step) {
   }
 }
 
-function doPost(subject, phase, step) {
+function doPost(subject, phase, step, data) {
   switch(phase) {
     case 'consent':
       return postConsent(subject);
     case 'grid':
-      return postGrid(subject, step);
+      return postGrid(subject, step, data);
     case 'slider':
-      return postSlider(subject, step);
+      return postSlider(subject, step, data);
     case 'inventory':
-      return postInventory(subject, step);
+      return postInventory(subject, step, data);
     default:
       return ';'
   }
@@ -133,10 +134,13 @@ function getGrid(step) {
   return parseGrid(grid);
 }
 
-function postGrid(subject, step) {
-  switch(step) {
-    default:
-      break;
+function postGrid(subject, step, data) {
+  var file = getSubjectFile(subject);
+  if (fs.existsSync(file)) {
+    var subjectPath = getSubjectPath(subject);
+    var fileName = 'grid' + step + '.csv'
+    var gridFile = path.join(subjectPath, fileName);
+    fs.writeFileSync(gridFile, writeAllKeysAndValues(data));
   }
 }
 
@@ -145,8 +149,14 @@ function getSlider(step) {
   return parseSlider(slider);
 }
 
-function postSlider(subject, step) {
-
+function postSlider(subject, step, data) {
+  var file = getSubjectFile(subject);
+  if (fs.existsSync(file)) {
+    var subjectPath = getSubjectPath(subject);
+    var fileName = 'slider' + step + '.csv'
+    var sliderFile = path.join(subjectPath, fileName);
+    fs.writeFileSync(sliderFile, writeAllKeysAndValues(data));
+  }
 }
 
 function getInventory(step) {
@@ -154,8 +164,14 @@ function getInventory(step) {
   return parseInventory(inventory);
 }
 
-function postInventory(subject, step) {
-
+function postInventory(subject, step, data) {
+  var file = getSubjectFile(subject);
+  if (fs.existsSync(file)) {
+    var subjectPath = getSubjectPath(subject);
+    var fileName = 'inventory' + step + '.csv'
+    var inventoryFile = path.join(subjectPath, fileName);
+    fs.writeFileSync(inventoryFile, writeAllKeysAndValues(data));
+  }
 }
 
 function postConsent(subject) {
@@ -166,7 +182,7 @@ function postConsent(subject) {
     var fd = fs.openSync(consentFile, 'w');
     fs.closeSync(fd);
     var now = moment().format(config.get('Application.timeFormat'));
-    fs.appendFile(consentFile, now);
+    fs.writeFileSync(consentFile, now);
   }
 }
 
@@ -176,6 +192,26 @@ function getSubjectPath(subject) {
 
 function getSubjectFile(subject) {
   return path.join(getSubjectPath(subject), 'subject.csv');
+}
+
+function writeAllKeysAndValues(inData) {
+  var outData = "";
+  var i = 0;
+  var keys = new Array();
+  for (var k in inData) {
+    outData[i] = k;
+    i++;
+  }
+  var keyString = keys.join(',');
+  var j = 0;
+  var values = new Array()
+  for (var v in inData) {
+    values[j] = inData[v];
+    j++;
+  }
+  var valueString = values.join(',');
+  outData = keyString + '\n' + valueString;
+  return outData;
 }
 
 function setupExperiment() {
