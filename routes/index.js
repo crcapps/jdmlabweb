@@ -7,6 +7,7 @@ var mkdirp = require('mkdirp');
 var rimraf = require('rimraf');
 var Shuffle = require('shuffle');
 var moment = require('moment');
+var archiver = require('archiver');
 
 
 var subjectsPath = path.join(__dirname, config.get('Application.subjectPath'));
@@ -299,6 +300,10 @@ function parseCommand (command) {
       for (i = 0; i < subjects.length; i++) {
         returnHtml += "<span>" + subjects[i] + "</span><br />\n";
       }
+      break;
+    case 'EXPORT':
+      var archive = archiver('zip');
+      
       break;
     default:
       returnHtml += config.get('Errors.errorMalformedCommand');

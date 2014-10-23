@@ -58,21 +58,27 @@ function doinit() {
 	choices = document.querySelectorAll("div.gridrowheader").length - 1;
 
 	moveLog += "STARTTIME:" + new Date().toUTCString() + "\n";
-	moveLog += "Movement: 1=Alt-wise   2=Att-wise   3=Neither   4=None\n";
-	moveLog += "Index,Row,Column,Display time,Lag time,Movement\n";
+	moveLog += "Movement: 1=Alt-wise   2=Att-wise   3=Neither   4=None   5=Choice\n";
+	moveLog += "Index,Row,Column,Lag Time,Display Time,Movement\n";
 	choiceGrid.totalTimer.start();
 }
 
 function makeChoice(id,label,rank) {
 	hasMovedYet = true;
 	totalChoices++;
+	totalMoves++;
 	//totalMoves++;
 	//noneMoves++;
 	lastCoords = ["-1","-1"];
 	choiceGrid.lagTimer.stop();
 	//var choices = document.querySelectorAll("div.gridrowheader").length;
 	if ((rank == "best" || rank == "worst") && totalChoices < choices) {
-		moveLog += "DIR:" + madeChoice + " CHOICE:" + id + " (" + label + ") LAGTIME:" + choiceGrid.lagTimer.time() + "\n";
+		if (!hasMovedYet) {
+			//moveLog += "Index,Row,Column,Lag Time,Display Time,Movement\n";
+			moveLog += (totalMoves + 1) + "," + id + ",(" + label + ")," + choiceGrid.lagTimer.time() + ',,';
+		} else {
+			moveLog += madeChoice + "\n" + (totalMoves + 1) + "," + id + ",(" + label + ")," + choiceGrid.lagTimer.time() + ',,'
+		}
 		var divs = document.getElementsByTagName('div');
 		var targetId = id;
 		for (var index = 0; index < divs.length; index++) {
@@ -83,12 +89,19 @@ function makeChoice(id,label,rank) {
 				divs[index].className = "eliminated";
 			}
 		}
+		console.log(moveLog);
 	} else {
 	choiceGrid.totalTimer.stop();
-	moveLog += "DIR:" + madeChoice + " CHOICE:" + id + " (" + label + ") LAGTIME:" + choiceGrid.lagTimer.time() + " TOTALTIME:" + choiceGrid.totalTimer.time();
+	if (!hasMovedYet) {
+		moveLog += (totalMoves + 1) + "," + id + ",(" + label + ")," + choiceGrid.lagTimer.time() + ',,';
+		movelog += "\nTOTALTIME:" + choiceGrid.totalTimer.time();
+	} else {
+		moveLog += madeChoice + "\n" + (totalMoves + 1) + "," + id + ",(" + label + ")," + choiceGrid.lagTimer.time() + ',,'
+		moveLog += "\nTOTALTIME:" + choiceGrid.totalTimer.time();
+	}
 	moveLog += " STOPTIME:" + new Date().toUTCString() + "\n";
 
-	moveSummary += "Total," + totalMoves + ",1.00\n";
+	moveSummary += "Total," + (totalMoves + 1) + ",1.00\n";
 	var altMoveProportion = altMoves/totalMoves;
 	var attMoveProportion = attMoves/totalMoves;
 	var neitherMoves = diagMoves;
@@ -135,7 +148,13 @@ function mouseOverGrid(row,column) {
 			default:
 				break;
 		}
-		moveLog += "MOVE:" + totalMoves + " DIR:" + type + " ALT:" + row + " ATT:" + column + " LAGTIME:" + choiceGrid.lagTimer.time();
+		//moveLog += "MOVE:" + totalMoves + " DIR:" + type + " ALT:" + row + " ATT:" + column + " LAGTIME:" + choiceGrid.lagTimer.time();
+		//moveLog += "Index,Row,Column,Lag Time,Display Time,Movement\n";
+		if (!hasMovedYet) {
+			moveLog += (totalMoves + 1) + ',' + row + "," + column + "," + choiceGrid.lagTimer.time() + ',';
+		} else {
+			moveLog += type + '\n' + (totalMoves + 1) + ',' + row + "," + column + "," + choiceGrid.lagTimer.time() + ',';
+		}
 		if (hasMovedYet) {
 			totalMoves++;
 			if (type == initial) {
@@ -146,13 +165,15 @@ function mouseOverGrid(row,column) {
 		lastCoords = [column,row];
 		choiceGrid.choiceTimer.start();
 	});
+	console.log(moveLog);
 }
 
 function mouseOutGrid(row,column) {
 	choiceGrid.choiceTimer.stop();
 	var time = choiceGrid.choiceTimer.time();
 	if (cellActive) {
-		moveLog += " CHOICETIME:" + time + "\n";
+		//moveLog += "Index,Row,Column,Lag Time,Display Time,Movement\n";
+		moveLog += time + ',';
 		viewTime += time;
 		cellActive = false;
 	}
@@ -161,7 +182,7 @@ function mouseOutGrid(row,column) {
 	var id = "cell:" + row + "," + column;
 	var cell = document.getElementById(id);
 	cell.className = "gridcontent";
-
+	console.log(moveLog);
 }
 
 window.onload = doinit;

@@ -38,6 +38,6 @@
     "shuffle": "latest",
     "rimraf": "latest",
     "mkdirp": "latest",
-    "node-zip": "latest"
+    "archiver": "latest"
   }
 }
