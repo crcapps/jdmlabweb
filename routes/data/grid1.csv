@@ -1,5 +1,5 @@
 RANKMODE BestFirst
-,Calories,Total fat,Sat fat,Sodium,Carboh.,Sugar,Protein,Vitamin C ,"Average taste rating"
+,Calories,Total fat,Sat fat,Sodium,Carboh.,Sugar,Protein,Vitamin C ,Average taste rating
 Potato Chips 1,100,5 (7%),1 (5%),80 (3%),13 (4%),1g,2 (4%),25%,2
 Potato Chips 2,200,3 (4%),.5 (3%),230 (10%),39 (13%),4g,3 (4%),3%,2
 Potato Chips 3,130,7 (11%),2 (10%),135 (6%),17 (6%),1g,1 (2%),6%,9
