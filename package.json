@@ -37,6 +37,7 @@
     "bootstrap-stylus": "latest",
     "shuffle": "latest",
     "rimraf": "latest",
-    "mkdirp": "latest"
+    "mkdirp": "latest",
+    "node-zip": "latest"
   }
 }

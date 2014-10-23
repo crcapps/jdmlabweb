@@ -199,7 +199,7 @@ function writeAllKeysAndValues(inData) {
   var i = 0;
   var keys = new Array();
   for (var k in inData) {
-    outData[i] = k;
+    keys[i] = k;
     i++;
   }
   var keyString = keys.join(',');
