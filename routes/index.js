@@ -9,6 +9,8 @@ var Shuffle = require('shuffle');
 var moment = require('moment');
 var archiver = require('archiver');
 
+var shouldDownload = false;
+
 
 var subjectsPath = path.join(__dirname, config.get('Application.subjectPath'));
 
@@ -43,7 +45,14 @@ router.post(config.get('Application.Routes.adminRoute'),function(req, res) {
   } else {
     returnHtml += config.get('Errors.errorInvalidCredentials');
   }
-  res.render('modules/admin', {output:returnHtml});
+  if (shouldDownload) {
+    shouldDownload = false;
+    res.set({"Content-Disposition":"attachment; filename=\"export-" + moment().format(config.get('Application.timeFormat')) + ".zip\""});
+    res.contentType("application/zip");
+       res.send(ex);
+  }else {
+    res.render('modules/admin', {output:returnHtml});
+  }
 });
 
 /* Anything else is parsed as a Subject ID */
@@ -303,7 +312,7 @@ function parseCommand (command) {
       break;
     case 'EXPORT':
       var archive = archiver('zip');
-      
+      shouldDownload = true;
       break;
     default:
       returnHtml += config.get('Errors.errorMalformedCommand');
