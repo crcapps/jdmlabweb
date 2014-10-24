@@ -65,7 +65,7 @@ router.post(config.get('Application.Routes.adminRoute'),function(req, res) {
 
     archive.pipe(output);
     archive.bulk([
-        { expand: true, cwd: './routes/subjects', src: ['**/*'], dest: './'}
+        { expand: true, cwd: __dirname + '/subjects', src: ['**/*'], dest: './'}
     ]);
     archive.finalize();
 
