@@ -4,7 +4,7 @@ module.exports =
 		defaultLang: "en-us"
 		defaultCharset: "UTF-8"
 		favicon: "favicon.ico"
-		timeFormat: "LLLL"
+		timeFormat: "LLL"
 		publicPath: "/public"
 		viewPath: "/views"
 		routePath: "/routes"

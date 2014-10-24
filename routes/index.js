@@ -47,9 +47,28 @@ router.post(config.get('Application.Routes.adminRoute'),function(req, res) {
   }
   if (shouldDownload) {
     shouldDownload = false;
-    res.set({"Content-Disposition":"attachment; filename=\"export-" + moment().format(config.get('Application.timeFormat')) + ".zip\""});
-    res.contentType("application/zip");
-       res.send(ex);
+    var archive = archiver('zip');
+    var outputFileName = "export-" + moment().format(config.get('Application.timeFormat')) + ".zip"
+    var output = fs.createWriteStream(outputFileName);
+
+    archive.on('error', function(err){
+      throw err;
+    });
+
+
+
+    output.on('close', function () {
+      res.set({"Content-Disposition":"attachment; filename=\"" + outputFileName + "\""});
+      res.contentType("application/zip");
+       res.send(fs.readFileSync(outputFileName));
+    });
+
+    archive.pipe(output);
+    archive.bulk([
+        { expand: true, cwd: './routes/subjects', src: ['**/*'], dest: './'}
+    ]);
+    archive.finalize();
+
   }else {
     res.render('modules/admin', {output:returnHtml});
   }
@@ -134,7 +153,7 @@ function doPost(subject, phase, step, data) {
     case 'inventory':
       return postInventory(subject, step, data);
     default:
-      return ';'
+      return '';
   }
 
 }
@@ -311,7 +330,6 @@ function parseCommand (command) {
       }
       break;
     case 'EXPORT':
-      var archive = archiver('zip');
       shouldDownload = true;
       break;
     default:
