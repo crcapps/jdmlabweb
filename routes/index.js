@@ -55,8 +55,6 @@ router.post(config.get('Application.Routes.adminRoute'),function(req, res) {
       throw err;
     });
 
-
-
     output.on('close', function () {
       res.set({"Content-Disposition":"attachment; filename=\"" + outputFileName + "\""});
       res.contentType("application/zip");
